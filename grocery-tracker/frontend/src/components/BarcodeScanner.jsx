@@ -5,35 +5,46 @@ const BarcodeScanner = ({ onScan }) => {
   const scannerRef = useRef(null);
 
   useEffect(() => {
-    Quagga.init({
-      inputStream: {
-        type: 'LiveStream',
-        target: scannerRef.current,
-        constraints: {
-          width: 640,
-          height: 480,
-          facingMode: 'environment', // Will attempt to use rear camera
-        },
-      },
-      decoder: {
-        readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'code_128_reader']
-      }
-    }, (err) => {
-      if (err) {
-        console.error('Barcode scanner initialization failed: ', err);
-        return;
-      }
-      Quagga.start();
-    });
+    let active = true;
 
-    Quagga.onDetected((res) => {
+    const startScanner = async () => {
+      try {
+        await Quagga.init({
+          inputStream: {
+            type: 'LiveStream',
+            target: scannerRef.current,
+            constraints: {
+              width: 640,
+              height: 480,
+              facingMode: 'environment',
+            },
+          },
+          decoder: {
+            readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'code_128_reader']
+          }
+        });
+
+        if (active) {
+          Quagga.start();
+          Quagga.onDetected(handleDetected);
+        }
+      } catch (err) {
+        console.error('Barcode scanner initialization failed: ', err);
+      }
+    };
+
+    const handleDetected = (res) => {
       if (res && res.codeResult && res.codeResult.code) {
         onScan(res.codeResult.code);
         Quagga.stop();
       }
-    });
+    };
+
+    startScanner();
 
     return () => {
+      active = false;
+      Quagga.offDetected(handleDetected);
       Quagga.stop();
     };
   }, [onScan]);
@@ -60,4 +71,4 @@ const BarcodeScanner = ({ onScan }) => {
   );
 };
 
-export default BarcodeScanner;
+export default React.memo(BarcodeScanner);

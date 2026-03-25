@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { 
@@ -23,6 +23,11 @@ const POS = () => {
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [showScanner, setShowScanner] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  const handleScan = useCallback((code) => { 
+    setSearchTerm(code); 
+    setShowScanner(false); 
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -127,7 +132,7 @@ const POS = () => {
 
         {showScanner && (
           <div className="animate-in fade-in zoom-in duration-300">
-            <BarcodeScanner onScan={(code) => { setSearchTerm(code); setShowScanner(false); }} />
+            <BarcodeScanner onScan={handleScan} />
           </div>
         )}
 
