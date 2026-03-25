@@ -32,7 +32,7 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5500/api/dashboard/stats');
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/dashboard/stats`);
       setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);

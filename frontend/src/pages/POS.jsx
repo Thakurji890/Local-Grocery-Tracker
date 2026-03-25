@@ -30,7 +30,7 @@ const POS = () => {
 
   const fetchProducts = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5500/api/products');
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
       setProducts(data);
     } catch (error) {
       toast.error('Failed to fetch products');
@@ -57,7 +57,7 @@ const POS = () => {
         paymentMethod
       };
 
-      const { data } = await axios.post('http://localhost:5500/api/bills', payload);
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/bills`, payload);
       toast.success('Transaction Completed');
       generateReceipt(data);
       clearCart();
@@ -95,7 +95,7 @@ const POS = () => {
     doc.setFontSize(14);
     doc.text(`Grand Total: ₹${bill.grandTotal.toFixed(2)}`, 190, finalY, { align: 'right' });
     doc.setFontSize(10);
-    doc.text(`Payment: ${bill.paymentMethod} | CGST: ₹${bill.cgst.toFixed(2)} | SGST: ₹${bill.sgst.toFixed(2)}`, 190, finalY + 7, { align: 'right' });
+    doc.text(`Payment: ${bill.paymentMethod} | CGST: ₹${bill.cgstTotal.toFixed(2)} | SGST: ₹${bill.sgstTotal.toFixed(2)}`, 190, finalY + 7, { align: 'right' });
     
     doc.save(`GrocerIQ_${bill.billNumber}.pdf`);
   };

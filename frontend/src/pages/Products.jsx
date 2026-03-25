@@ -35,7 +35,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5500/api/products');
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
       setProducts(data);
     } catch (error) {
       toast.error('Failed to fetch products');
@@ -49,10 +49,10 @@ const Products = () => {
     try {
       const payload = { ...formData, price: Number(formData.price), stockQuantity: Number(formData.stockQuantity) };
       if (editingProduct) {
-        await axios.put(`http://localhost:5500/api/products/${editingProduct._id}`, payload);
+        await axios.put(`${import.meta.env.VITE_API_URL}/products/${editingProduct._id}`, payload);
         toast.success('Product updated');
       } else {
-        await axios.post('http://localhost:5500/api/products', payload);
+        await axios.post(`${import.meta.env.VITE_API_URL}/products`, payload);
         toast.success('Product added');
       }
       setIsModalOpen(false);
@@ -66,7 +66,7 @@ const Products = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Delete this product permanently?')) {
       try {
-        await axios.delete(`http://localhost:5500/api/products/${id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/products/${id}`);
         toast.success('Product removed');
         fetchProducts();
       } catch (error) {

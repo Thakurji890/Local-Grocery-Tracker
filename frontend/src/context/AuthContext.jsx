@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { data } = await axios.post('http://localhost:5500/api/auth/login', { email, password });
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { email, password });
       localStorage.setItem('userInfo', JSON.stringify(data));
       setUser(data);
       toast.success('Access Granted');

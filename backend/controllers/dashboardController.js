@@ -9,19 +9,21 @@ exports.getStats = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const billsToday = await Bill.find({ createdAt: { $gte: today } });
+    const allBills = await Bill.find({});
     
-    const todaysRevenue = billsToday.reduce((acc, bill) => acc + bill.grandTotal, 0);
-    const todaysGST = billsToday.reduce((acc, bill) => acc + bill.cgstTotal + bill.sgstTotal, 0);
-    const totalBillsToday = billsToday.length;
+    const totalRevenue = allBills.reduce((acc, bill) => acc + bill.grandTotal, 0);
+    const gstCollected = allBills.reduce((acc, bill) => acc + bill.cgstTotal + bill.sgstTotal, 0);
+    const totalBills = allBills.length;
+    const itemsSold = allBills.reduce((acc, bill) => acc + bill.items.reduce((sum, item) => sum + item.quantity, 0), 0);
 
     const allProducts = await Product.find({});
-    const lowStockItems = allProducts.filter(p => p.stockQuantity < 10).length;
+    const lowStockItems = allProducts.filter(p => p.stockQuantity < 10);
 
     res.json({
-      todaysRevenue,
-      todaysGST,
-      totalBillsToday,
+      totalRevenue,
+      gstCollected,
+      totalBills,
+      itemsSold,
       lowStockItems
     });
   } catch (error) {

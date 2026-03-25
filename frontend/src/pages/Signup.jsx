@@ -17,7 +17,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5500/api/auth/register', formData);
+      await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, formData);
       toast.success('Profile created successfully!');
       await login(formData.email, formData.password);
     } catch (error) {
