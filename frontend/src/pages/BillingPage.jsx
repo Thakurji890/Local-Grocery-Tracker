@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { QRCodeCanvas } from 'qrcode.react';
 import { productAPI, billAPI, customerAPI } from '../services/api';
 import { processBill, formatCurrency } from '../utils/gst';
 import { generateReceiptPDF } from '../utils/pdfGenerator';
@@ -427,8 +428,12 @@ export default function BillingPage() {
 
               {paymentMode === 'upi' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div className="alert alert-info" style={{ fontSize: 12 }}>
-                    <div>📱 UPI ID: <strong>{import.meta.env.VITE_UPI_ID || 'shopname@upi'}</strong></div>
+                  <div className="alert alert-info" style={{ fontSize: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                    <div style={{ marginBottom: 8 }}>📱 UPI ID: <strong>{import.meta.env.VITE_UPI_ID || 'shopname@upi'}</strong></div>
+                    <div style={{ background: '#fff', padding: 8, borderRadius: 8, marginBottom: 8 }}>
+                      <QRCodeCanvas value={UPI_LINK} size={120} />
+                    </div>
+                    <div style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>Scan to Pay ₹{totals.grandTotal}</div>
                     <a href={UPI_LINK} style={{ fontSize: 11, color: 'var(--info)' }} target="_blank" rel="noreferrer">▶ Open UPI App</a>
                   </div>
                   <input
@@ -504,13 +509,19 @@ export default function BillingPage() {
                 <hr className="receipt-divider" />
                 <div className="receipt-row total"><span>GRAND TOTAL</span><span>₹{lastBill.grandTotal?.toFixed(2)}</span></div>
                 <div className="receipt-row"><span>Payment</span><span style={{ textTransform: 'uppercase' }}>{lastBill.paymentMode}</span></div>
+                {lastBill.paymentMode === 'upi' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 12, padding: 8, border: '1px dashed #ccc', borderRadius: 4 }}>
+                    <div style={{ fontSize: 10, marginBottom: 4, fontWeight: 'bold' }}>UPI QR CODE</div>
+                    <QRCodeCanvas value={`upi://pay?pa=${import.meta.env.VITE_UPI_ID || 'shopname@upi'}&pn=${encodeURIComponent(import.meta.env.VITE_STORE_NAME || 'Store')}&am=${lastBill.grandTotal}&cu=INR`} size={80} />
+                  </div>
+                )}
                 <hr className="receipt-divider" />
                 <div style={{ textAlign: 'center', fontSize: 11 }}>Thank you for shopping! 🙏</div>
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowReceipt(false)}>Close</button>
-              <button className="btn btn-forest" onClick={() => { generateReceiptPDF(lastBill); toast.success('PDF downloaded!'); }}>
+              <button className="btn btn-forest" onClick={async () => { await generateReceiptPDF(lastBill); toast.success('PDF downloaded!'); }}>
                 📥 Download PDF
               </button>
               <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print</button>

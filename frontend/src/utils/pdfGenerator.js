@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import QRCode from 'qrcode';
 import { formatDateTime } from './gst';
 
 const STORE = {
@@ -11,8 +12,8 @@ const STORE = {
  * Generate and download a PDF receipt for a bill
  * @param {Object} bill - Full bill object from API
  */
-export const generateReceiptPDF = (bill) => {
-  const doc = new jsPDF({ unit: 'mm', format: [80, 200], orientation: 'portrait' });
+export const generateReceiptPDF = async (bill) => {
+  const doc = new jsPDF({ unit: 'mm', format: [80, 250], orientation: 'portrait' });
 
   const pageW = doc.internal.pageSize.getWidth();
   let y = 8;
@@ -82,6 +83,23 @@ export const generateReceiptPDF = (bill) => {
   row('GRAND TOTAL', `₹${bill.grandTotal?.toFixed(2)}`, true);
   row('Payment', bill.paymentMode?.toUpperCase());
   if (bill.upiTransactionId) row('UPI Txn ID', bill.upiTransactionId);
+
+  if (bill.paymentMode === 'upi') {
+    try {
+      const upiUrl = `upi://pay?pa=${import.meta.env.VITE_UPI_ID || 'shopname@upi'}&pn=${encodeURIComponent(import.meta.env.VITE_STORE_NAME || 'Store')}&am=${bill.grandTotal}&cu=INR`;
+      const qrDataUrl = await QRCode.toDataURL(upiUrl);
+      y += 2;
+      doc.addImage(qrDataUrl, 'PNG', pageW / 2 - 15, y, 30, 30);
+      y += 32;
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Scan to Pay', pageW / 2, y, { align: 'center' });
+      y += 5;
+    } catch (err) {
+      console.error('QR Gen error', err);
+    }
+  }
+
   line();
 
   // GST Summary
