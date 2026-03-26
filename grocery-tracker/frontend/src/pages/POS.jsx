@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { CartContext } from '../context/CartContext';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import BarcodeScanner from '../components/BarcodeScanner';
 
 const POS = () => {
@@ -64,9 +64,16 @@ const POS = () => {
 
       const { data } = await axios.post('http://localhost:5500/api/bills', payload);
       toast.success('Transaction Completed');
-      generateReceipt(data);
       clearCart();
+      
+      try {
+        generateReceipt(data);
+      } catch (receiptError) {
+        console.error('Receipt generation failed:', receiptError);
+        toast.error('Bill printed failed, but transaction saved');
+      }
     } catch (error) {
+      console.error('Checkout error:', error);
       toast.error(error.response?.data?.message || 'Checkout failed');
     } finally {
       setLoading(false);
@@ -88,7 +95,7 @@ const POS = () => {
       `₹${item.total.toFixed(2)}`
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 40,
       head: [['Item Name', 'Qty', 'Price', 'GST', 'Total']],
       body: tableData,
@@ -96,11 +103,11 @@ const POS = () => {
       headStyles: { fillColor: [16, 185, 129] }
     });
 
-    const finalY = doc.previousAutoTable.finalY + 10;
+    const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 200;
     doc.setFontSize(14);
     doc.text(`Grand Total: ₹${bill.grandTotal.toFixed(2)}`, 190, finalY, { align: 'right' });
     doc.setFontSize(10);
-    doc.text(`Payment: ${bill.paymentMethod} | CGST: ₹${bill.cgst.toFixed(2)} | SGST: ₹${bill.sgst.toFixed(2)}`, 190, finalY + 7, { align: 'right' });
+    doc.text(`Payment: ${bill.paymentMethod} | CGST: ₹${bill.cgstTotal.toFixed(2)} | SGST: ₹${bill.sgstTotal.toFixed(2)}`, 190, finalY + 7, { align: 'right' });
     
     doc.save(`GrocerIQ_${bill.billNumber}.pdf`);
   };
