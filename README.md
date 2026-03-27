@@ -117,7 +117,7 @@ Open `.env` in any text editor and fill in your values:
 ```
 PORT=5000
 NODE_ENV=development
-MONGO_URI=mongodb://localhost:27017/grocery_tracker
+MONGO_URI="Your Local MangoBD url"
 JWT_SECRET=your_random_secret_here_make_it_long_and_random
 JWT_EXPIRE=7d
 STORE_NAME=Your Store Name
